@@ -5,12 +5,16 @@ import copy
 st.title("Multi-Game Arcade")
 
 # Dropdown to select the game
-game = st.selectbox("Choose a Game", ["Zero Kata", "Sudoku", "Guess the Higher Number"])
+game = st.selectbox("Choose a Game", ["Tic-Tac-Toe", "Sudoku", "Guess the Higher Number"])
 
 # Initialize session state for each game
 if 'game_state' not in st.session_state:
     st.session_state.game_state = {
-        'zero_kata': {'pile': 21, 'turn': 'player', 'winner': None},
+        'tic_tac_toe': {
+            'board': [['' for _ in range(3)] for _ in range(3)],
+            'current_player': 'X',
+            'winner': None
+        },
         'sudoku': {
             'board': [
                 [5,3,0,0,7,0,0,0,0],
@@ -33,51 +37,78 @@ if not any(st.session_state.game_state['sudoku']['editable']):
     initial_board = st.session_state.game_state['sudoku']['board']
     st.session_state.game_state['sudoku']['editable'] = [[initial_board[i][j] == 0 for j in range(9)] for i in range(9)]
 
-# Zero Kata Game Logic
-def zero_kata():
-    st.subheader("Zero Kata")
-    st.write("Remove 1, 2, or 3 items from the pile. Force your opponent to take the last item to win!")
-    
-    def computer_move():
-        pile = st.session_state.game_state['zero_kata']['pile']
-        if pile % 4 == 0:
-            move = random.randint(1, min(3, pile))
-        else:
-            move = pile % 4
-        st.session_state.game_state['zero_kata']['pile'] -= move
-        st.session_state.game_state['zero_kata']['turn'] = 'player'
-        if st.session_state.game_state['zero_kata']['pile'] <= 0:
-            st.session_state.game_state['zero_kata']['winner'] = 'Computer'
-    
-    st.write(f"Pile: {st.session_state.game_state['zero_kata']['pile']} items left")
-    if st.session_state.game_state['zero_kata']['winner']:
-        st.write(f"Game Over! {st.session_state.game_state['zero_kata']['winner']} wins!")
-    else:
-        if st.session_state.game_state['zero_kata']['turn'] == 'player':
-            col1, col2, col3 = st.columns(3)
-            if col1.button("Take 1", disabled=st.session_state.game_state['zero_kata']['pile'] < 1, key="zk_take1"):
-                st.session_state.game_state['zero_kata']['pile'] -= 1
-                st.session_state.game_state['zero_kata']['turn'] = 'computer'
-                if st.session_state.game_state['zero_kata']['pile'] <= 0:
-                    st.session_state.game_state['zero_kata']['winner'] = 'Player'
-            if col2.button("Take 2", disabled=st.session_state.game_state['zero_kata']['pile'] < 2, key="zk_take2"):
-                st.session_state.game_state['zero_kata']['pile'] -= 2
-                st.session_state.game_state['zero_kata']['turn'] = 'computer'
-                if st.session_state.game_state['zero_kata']['pile'] <= 0:
-                    st.session_state.game_state['zero_kata']['winner'] = 'Player'
-            if col3.button("Take 3", disabled=st.session_state.game_state['zero_kata']['pile'] < 3, key="zk_take3"):
-                st.session_state.game_state['zero_kata']['pile'] -= 3
-                st.session_state.game_state['zero_kata']['turn'] = 'computer'
-                if st.session_state.game_state['zero_kata']['pile'] <= 0:
-                    st.session_state.game_state['zero_kata']['winner'] = 'Player'
-        else:
-            computer_move()
-            st.experimental_rerun()
-    if st.button("Reset Zero Kata", key="zk_reset"):
-        st.session_state.game_state['zero_kata'] = {'pile': 21, 'turn': 'player', 'winner': None}
+# Tic-Tac-Toe Game Logic
+def tic_tac_toe():
+    st.subheader("Tic-Tac-Toe")
+    st.write("You are X. Click a cell to place your mark. The computer plays as O. Win by getting 3 in a row!")
+
+    def check_winner(board):
+        # Check rows, columns, and diagonals
+        for i in range(3):
+            if board[i][0] == board[i][1] == board[i][2] != '':
+                return board[i][0]
+            if board[0][i] == board[1][i] == board[2][i] != '':
+                return board[0][i]
+        if board[0][0] == board[1][1] == board[2][2] != '':
+            return board[0][0]
+        if board[0][2] == board[1][1] == board[2][0] != '':
+            return board[0][2]
+        return None
+
+    def computer_move(board):
+        # Simple AI: Check for winning move or block player
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == '':
+                    board[i][j] = 'O'
+                    if check_winner(board):
+                        return
+                    board[i][j] = ''
+        # If no win/block, pick a random empty cell
+        empty_cells = [(i, j) for i in range(3) for j in range(3) if board[i][j] == '']
+        if empty_cells:
+            i, j = random.choice(empty_cells)
+            board[i][j] = 'O'
+
+    # Display board
+    board = st.session_state.game_state['tic_tac_toe']['board']
+    cols = st.columns(3)
+    for i in range(3):
+        with st.container():
+            row_cols = st.columns(3)
+            for j in range(3):
+                with row_cols[j]:
+                    if st.button(board[i][j] if board[i][j] else f"{i},{j}", key=f"btn_{i}{j}"):
+                        if board[i][j] == '' and st.session_state.game_state['tic_tac_toe']['current_player'] == 'X':
+                            board[i][j] = 'X'
+                            st.session_state.game_state['tic_tac_toe']['current_player'] = 'O'
+                            winner = check_winner(board)
+                            if winner:
+                                st.session_state.game_state['tic_tac_toe']['winner'] = winner
+                            elif all(board[i][j] != '' for i in range(3) for j in range(3)):
+                                st.session_state.game_state['tic_tac_toe']['winner'] = 'Tie'
+                            else:
+                                computer_move(board)
+                                st.session_state.game_state['tic_tac_toe']['current_player'] = 'X'
+                                winner = check_winner(board)
+                                if winner:
+                                    st.session_state.game_state['tic_tac_toe']['winner'] = winner
+                                elif all(board[i][j] != '' for i in range(3) for j in range(3)):
+                                    st.session_state.game_state['tic_tac_toe']['winner'] = 'Tie'
+                            st.experimental_rerun()
+
+    # Display winner
+    if st.session_state.game_state['tic_tac_toe']['winner']:
+        st.write(f"Game Over! {st.session_state.game_state['tic_tac_toe']['winner']} wins!" if st.session_state.game_state['tic_tac_toe']['winner'] != 'Tie' else "Game Over! It's a tie!")
+    if st.button("Reset Tic-Tac-Toe", key="ttt_reset"):
+        st.session_state.game_state['tic_tac_toe'] = {
+            'board': [['' for _ in range(3)] for _ in range(3)],
+            'current_player': 'X',
+            'winner': None
+        }
         st.experimental_rerun()
 
-# Sudoku Game Logic
+# Sudoku Game Logic (unchanged)
 def sudoku():
     st.subheader("Sudoku")
     
@@ -122,7 +153,7 @@ def sudoku():
         st.session_state.game_state['sudoku']['editable'] = [[initial_board[i][j] == 0 for j in range(9)] for i in range(9)]
         st.experimental_rerun()
 
-# Guess the Higher Number Game Logic
+# Guess the Higher Number Game Logic (unchanged)
 def guess_number():
     st.subheader("Guess the Higher Number")
     st.write("Pick a number between 1 and 10. The higher number wins!")
@@ -150,8 +181,8 @@ def guess_number():
         st.experimental_rerun()
 
 # Run the selected game
-if game == "Zero Kata":
-    zero_kata()
+if game == "Tic-Tac-Toe":
+    tic_tac_toe()
 elif game == "Sudoku":
     sudoku()
 elif game == "Guess the Higher Number":
