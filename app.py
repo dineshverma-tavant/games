@@ -95,7 +95,7 @@ def tic_tac_toe():
                                     st.session_state.game_state['tic_tac_toe']['winner'] = winner
                                 elif all(board[i][j] != '' for i in range(3) for j in range(3)):
                                     st.session_state.game_state['tic_tac_toe']['winner'] = 'Tie'
-                            st.experimental_rerun()
+                            st.rerun()
 
     # Display winner
     if st.session_state.game_state['tic_tac_toe']['winner']:
@@ -106,9 +106,9 @@ def tic_tac_toe():
             'current_player': 'X',
             'winner': None
         }
-        st.experimental_rerun()
+        st.rerun()
 
-# Sudoku Game Logic (unchanged)
+# Sudoku Game Logic
 def sudoku():
     st.subheader("Sudoku")
     
@@ -151,9 +151,9 @@ def sudoku():
         ]
         st.session_state.game_state['sudoku']['board'] = copy.deepcopy(initial_board)
         st.session_state.game_state['sudoku']['editable'] = [[initial_board[i][j] == 0 for j in range(9)] for i in range(9)]
-        st.experimental_rerun()
+        st.rerun()
 
-# Guess the Higher Number Game Logic (unchanged)
+# Guess the Higher Number Game Logic
 def guess_number():
     st.subheader("Guess the Higher Number")
     st.write("Pick a number between 1 and 10. The higher number wins!")
@@ -178,7 +178,7 @@ def guess_number():
         st.write(f"Result: {st.session_state.game_state['guess_number']['result']}")
     if st.button("Reset Guess Number", key="gn_reset"):
         st.session_state.game_state['guess_number'] = {'player_num': 5, 'computer_num': None, 'result': None}
-        st.experimental_rerun()
+        st.rerun()
 
 # Run the selected game
 if game == "Tic-Tac-Toe":
