@@ -156,11 +156,11 @@ def sudoku():
 # Guess the Higher Number Game Logic
 def guess_number():
     st.subheader("Guess the Higher Number")
-    st.write("Pick a number between 1 and 10. The higher number wins!")
+    st.write("Pick a number between 1 and 1000. The higher number wins!")
     
-    st.session_state.game_state['guess_number']['player_num'] = st.slider("Your number", 1, 10, st.session_state.game_state['guess_number']['player_num'], key="gn_slider")
+    st.session_state.game_state['guess_number']['player_num'] = st.slider("Your number", 1, 1000, st.session_state.game_state['guess_number']['player_num'], key="gn_slider")
     if st.button("Play", key="gn_play"):
-        st.session_state.game_state['guess_number']['computer_num'] = random.randint(1, 10)
+        st.session_state.game_state['guess_number']['computer_num'] = random.randint(1, 1000)
         player_num = st.session_state.game_state['guess_number']['player_num']
         computer_num = st.session_state.game_state['guess_number']['computer_num']
         st.write(f"Your number: {player_num}")
